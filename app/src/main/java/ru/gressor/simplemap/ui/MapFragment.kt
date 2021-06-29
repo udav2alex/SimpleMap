@@ -6,15 +6,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import ru.gressor.simplemap.databinding.FragmentMapBinding
+import ru.gressor.simplemap.entities.Point
+import ru.gressor.simplemap.vm.MapVModel
 
 class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
     private var permissionsGranted: Boolean = false
     private lateinit var mapView: MapView
+
+    private val viewModel by lazy {
+        ViewModelProvider.NewInstanceFactory().create(MapVModel::class.java)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         this.arguments?.let { args ->
@@ -42,8 +49,13 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
         val moscow = LatLng(55.755826, 37.6173)
 
         googleMap.setOnMapClickListener {
+            val index = viewModel.pointsLiveData.value?.size ?: 0
+            val point = Point(it, "title $index", "snippet $index")
+
+            viewModel.newPoint(point)
+
             googleMap.addMarker(
-                MarkerOptions().position(it).title("title").snippet("snippet")
+                MarkerOptions().position(it).title(point.title).snippet(point.snippet)
             )
         }
 
@@ -83,6 +95,7 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
             )
             return fragment
         }
+
         private const val KEY_PERMISSION_GRANTED = "KEY_PERMISSION_GRANTED"
     }
 }
