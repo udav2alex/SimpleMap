@@ -26,17 +26,14 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction()
                 .add(R.id.fragment_container, StartFragment())
                 .commit()
-        }
-    }
 
-    override fun onStart() {
-        super.onStart()
-        if (checkPermissions()) startMapFragment(true)
+            if (checkPermissions()) startMapFragment(true)
+        }
     }
 
     private fun startMapFragment(permissionsGranted: Boolean) {
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragment_container, MapFragment.getInstance(permissionsGranted))
+            .replace(R.id.fragment_container, MapFragment.getInstance(permissionsGranted))
             .commit()
     }
 
@@ -81,8 +78,6 @@ class MainActivity : AppCompatActivity() {
                     show()
                 }
             startMapFragment(false)
-        } else {
-            startMapFragment(true)
         }
     }
 

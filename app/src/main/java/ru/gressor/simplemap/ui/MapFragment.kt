@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.os.bundleOf
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -19,11 +19,13 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
     private var permissionsGranted: Boolean = false
     private lateinit var mapView: MapView
 
-    private val viewModel by lazy {
-        ViewModelProvider.NewInstanceFactory().create(MapVModel::class.java)
-    }
+    private val viewModel: MapVModel by viewModels()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = super.onCreateView(inflater, container, savedInstanceState).also {
         this.arguments?.let { args ->
             permissionsGranted = args[KEY_PERMISSION_GRANTED] as? Boolean ?: false
         }
@@ -47,6 +49,14 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
         }
 
         val moscow = LatLng(55.755826, 37.6173)
+
+        viewModel.pointsLiveData.value?.let {
+            it.forEach { point ->
+                googleMap.addMarker(
+                    MarkerOptions().position(point.latLng).title(point.title).snippet(point.snippet)
+                )
+            }
+        }
 
         googleMap.setOnMapClickListener {
             val index = viewModel.pointsLiveData.value?.size ?: 0
