@@ -83,6 +83,18 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.edit -> {
+                if (context is PointsEditor) {
+                    (context as PointsEditor).editPoints(viewModel.pointsLiveData.value ?: listOf())
+                }
+                return true
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
     override fun onResume() {
         super.onResume()
         mapView.onResume()
@@ -108,14 +120,16 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
 
     companion object {
 
-        fun getInstance(permissionsGranted: Boolean): MapFragment {
-            val fragment = MapFragment()
-            fragment.arguments = bundleOf(
+        fun getInstance(permissionsGranted: Boolean) = MapFragment().apply {
+            arguments = bundleOf(
                 KEY_PERMISSION_GRANTED to permissionsGranted
             )
-            return fragment
         }
 
         private const val KEY_PERMISSION_GRANTED = "KEY_PERMISSION_GRANTED"
+    }
+
+    interface PointsEditor {
+        fun editPoints(points: List<Point>)
     }
 }

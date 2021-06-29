@@ -9,10 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import ru.gressor.simplemap.databinding.ActivityMainBinding
+import ru.gressor.simplemap.entities.Point
 import ru.gressor.simplemap.ui.MapFragment
+import ru.gressor.simplemap.ui.PointsFragment
 import ru.gressor.simplemap.ui.StartFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MapFragment.PointsEditor {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -29,6 +31,12 @@ class MainActivity : AppCompatActivity() {
 
             if (checkPermissions()) startMapFragment(true)
         }
+    }
+
+    override fun editPoints(points: List<Point>) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, PointsFragment.getInstance(points))
+            .commit()
     }
 
     private fun startMapFragment(permissionsGranted: Boolean) {
