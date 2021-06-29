@@ -5,8 +5,9 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.google.android.gms.maps.MapView
-        android:id="@+id/map_view"
+    <TextView
+        android:id="@+id/map_fragment"
+        android:text="name = com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
