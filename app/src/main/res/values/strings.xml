@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SimpleMap</string>
+    <string name="edit_points">Edit points</string>
 </resources>

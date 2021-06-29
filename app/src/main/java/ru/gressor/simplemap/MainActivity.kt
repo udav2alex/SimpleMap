@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity() {
                     show()
                 }
             startMapFragment(false)
+        } else {
+            startMapFragment(true)
         }
     }
 
