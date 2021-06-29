@@ -11,6 +11,8 @@ class PointsRecyclerAdapter(
 ) : RecyclerView.Adapter<PointsRecyclerAdapter.PointViewHolder>() {
     private val points = pointsList.toMutableList()
 
+    fun getPointsList(): List<Point> = points
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         PointViewHolder(
             ItemPointBinding
@@ -30,7 +32,7 @@ class PointsRecyclerAdapter(
             with(binding) {
                 pointTitle.text = point.title
                 pointSnippet.text = point.snippet
-                pointLatLng.text = "latitude: ${point.latLng.latitude}, longitude: ${point.latLng.longitude}"
+                pointLatLng.text = "latitude: ${point.latLng.latitude},\nlongitude: ${point.latLng.longitude}"
 
                 deletePoint.setOnClickListener {
                     points.remove(point)

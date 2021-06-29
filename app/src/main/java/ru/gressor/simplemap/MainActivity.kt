@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity(), MapFragment.PointsEditor {
                 .add(R.id.fragment_container, StartFragment())
                 .commit()
 
-            if (checkPermissions()) startMapFragment(true)
+            if (checkAndRequestPermissions()) startMapFragment(true)
         }
     }
 
@@ -45,28 +45,27 @@ class MainActivity : AppCompatActivity(), MapFragment.PointsEditor {
             .commit()
     }
 
-    private fun checkPermissions(): Boolean {
-        if (ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(
-                this, Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+    private fun checkAndRequestPermissions(): Boolean {
+        return if (isPermissionsGranted()) {
             Toast.makeText(this, "Permissions already granted", Toast.LENGTH_SHORT).show()
-            return true
+            true
         } else {
-            ActivityCompat.requestPermissions(
-                this,
+            ActivityCompat.requestPermissions(this,
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 ),
-                REQUEST_CODE_PERMISSIONS
-            )
-            return false
+                REQUEST_CODE_PERMISSIONS)
+            false
         }
     }
+
+    private fun isPermissionsGranted() = ContextCompat.checkSelfPermission(
+        this, Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -88,6 +87,21 @@ class MainActivity : AppCompatActivity(), MapFragment.PointsEditor {
             startMapFragment(false)
         } else {
             startMapFragment(true)
+        }
+    }
+
+    override fun onBackPressed() {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+
+        if (fragment is PointsFragment) {
+            val points = fragment.getPointsList()
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragment_container,
+                    MapFragment.getInstance(isPermissionsGranted(), points))
+                .commit()
+        } else {
+            super.onBackPressed()
         }
     }
 

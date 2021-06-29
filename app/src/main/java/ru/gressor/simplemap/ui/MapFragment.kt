@@ -5,20 +5,34 @@ import android.os.Bundle
 import android.view.*
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import ru.gressor.simplemap.R
 import ru.gressor.simplemap.databinding.FragmentMapBinding
 import ru.gressor.simplemap.entities.Point
 import ru.gressor.simplemap.vm.MapVModel
-import ru.gressor.simplemap.R
+import ru.gressor.simplemap.vm.MapVModelFactory
 
 class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
-    private var permissionsGranted: Boolean = false
-    private lateinit var mapView: MapView
+    private val permissionsGranted: Boolean by lazy {
+        arguments?.let { args -> args[KEY_PERMISSION_GRANTED] as? Boolean } ?: false
+    }
+    private val points: MutableList<Point> by lazy {
+        mutableListOf<Point>().apply {
+            (arguments?.getParcelableArray(KEY_POINTS_LIST)?.toMutableList() ?: mutableListOf())
+                .forEach {
+                    add(it as Point)
+                }
+        }
+    }
+    private val viewModel: MapVModel by lazy {
+        ViewModelProvider(this, MapVModelFactory(points)).get(MapVModel::class.java)
+    }
 
-    private val viewModel: MapVModel by viewModels()
+    private lateinit var mapView: MapView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,22 +43,19 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = super.onCreateView(inflater, container, savedInstanceState).also {
-        this.arguments?.let { args ->
-            permissionsGranted = args[KEY_PERMISSION_GRANTED] as? Boolean ?: false
+    ): View = super.onCreateView(inflater, container, savedInstanceState)
+        .also {
+            mapView = binding.mapView
+            mapView.onCreate(savedInstanceState)
+
+            try {
+                MapsInitializer.initialize(requireActivity().applicationContext)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            mapView.getMapAsync(this)
         }
-
-        mapView = binding.mapView
-        mapView.onCreate(savedInstanceState)
-
-        try {
-            MapsInitializer.initialize(requireActivity().applicationContext)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        mapView.getMapAsync(this)
-    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         if (permissionsGranted) {
@@ -84,7 +95,7 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
+        when (item.itemId) {
             R.id.edit -> {
                 if (context is PointsEditor) {
                     (context as PointsEditor).editPoints(viewModel.pointsLiveData.value ?: listOf())
@@ -95,6 +106,7 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
 
         return super.onOptionsItemSelected(item)
     }
+
     override fun onResume() {
         super.onResume()
         mapView.onResume()
@@ -120,13 +132,16 @@ class MapFragment : BaseFragment<FragmentMapBinding>(), OnMapReadyCallback {
 
     companion object {
 
-        fun getInstance(permissionsGranted: Boolean) = MapFragment().apply {
-            arguments = bundleOf(
-                KEY_PERMISSION_GRANTED to permissionsGranted
-            )
-        }
+        fun getInstance(permissionsGranted: Boolean, points: List<Point> = listOf()) =
+            MapFragment().apply {
+                arguments = bundleOf(
+                    KEY_PERMISSION_GRANTED to permissionsGranted,
+                    KEY_POINTS_LIST to points.toTypedArray()
+                )
+            }
 
         private const val KEY_PERMISSION_GRANTED = "KEY_PERMISSION_GRANTED"
+        private const val KEY_POINTS_LIST = "KEY_POINTS_LIST"
     }
 
     interface PointsEditor {

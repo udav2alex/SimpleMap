@@ -1,7 +1,6 @@
 package ru.gressor.simplemap.ui
 
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,18 +14,20 @@ class PointsFragment : BaseFragment<FragmentPointsBinding>() {
         binding.pointsRecycler
     }
     private val points: MutableList<Point> by lazy {
-        val pointsList = mutableListOf<Point>()
-        (arguments?.getParcelableArray(KEY_POINTS_LIST)?.toMutableList() ?: mutableListOf())
-            .forEach {
-                pointsList.add(it as Point)
-            }
-        return@lazy pointsList
+        mutableListOf<Point>().apply {
+            (arguments?.getParcelableArray(KEY_POINTS_LIST)?.toMutableList() ?: mutableListOf())
+                .forEach {
+                    add(it as Point)
+                }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = PointsRecyclerAdapter(points)
     }
+
+    fun getPointsList() = (recyclerView.adapter as PointsRecyclerAdapter).getPointsList()
 
     override fun getBindingObject(inflater: LayoutInflater, container: ViewGroup?) =
         FragmentPointsBinding.inflate(inflater, container, false)
